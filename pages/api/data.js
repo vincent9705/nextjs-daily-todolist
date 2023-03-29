@@ -12,7 +12,7 @@ async function handler(req, res) {
             res.status(400).json({ message: 'Param date is required' });
 
         if (data.length === 0) {
-            const todo = {"todo" : {}};
+            const todo = {};
             const result = await collection.insertOne({"_id": date, todo});
             res.status(200).json(todo);
         }
