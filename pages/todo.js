@@ -3,14 +3,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { format } from "date-fns";
 import { useRouter } from 'next/router';
 
-export default function Todo(context) {
-	const { date } = useRouter().query; // Access the date parameter
-	console.log(context.query);
+export default function Todo() {
+	const [date, setDate] = useState('');
 	const [todos, setTodos] = useState({});
 	const [editElement, setEditElement] = useState({});
+	const [isLoading, setIsLoading] = useState(true);
 	  
 	useEffect(() => {
-		fetch(`/api/data?date=${date}`)
+		const params = new URLSearchParams(window.location.search);
+		const dateParam = params.get('date');		
+
+    	if (dateParam) {
+			setDate(dateParam);
+			setIsLoading(false);
+		}
+
+		fetch(`/api/data?date=${dateParam}`)
 		.then(response => response.json())
 		.then(data => {
 			if (data) {
@@ -25,7 +33,7 @@ export default function Todo(context) {
 			}
 		})
 		.catch(error => console.error(error));
-	}, []);
+	}, [date]);
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
@@ -123,56 +131,66 @@ export default function Todo(context) {
 		return res;
 	}
 
-	return (
-		<>
-			<div className="h-screen overflow-y-scroll">
-				<div className="bg-gray-800 max-w-8xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
-					<h1 className="text-6xl pb-12">Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}</h1>
-					<form onSubmit={handleSubmit}>
-						<input type="text" name="todo" placeholder="Add a todo" className="w-9/12 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
-						<button type="submit" className="rounded bg-black px-5 py-1">Add</button>
-					</form>
+	if (isLoading)
+		return (<>
+			<div className="flex justify-center items-center h-screen">
+				<div className="relative">
+					<div className="animate-spin rounded-full h-32 w-32 border-b-4 border-gray-900"></div>
+					<p className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-gray-900 z-10">Loading...</p>
 				</div>
-				{
-					(!todos || Object.keys(todos).length == 0) ?
-					(
-						<div className="text-center pt-10">
-							<span className="text-3xl">No task found, please add new todo</span>
-						</div>
-					) :
-					<ul>
-						{
-							Object.entries(todos).map(([key, value]) => { 
-							return (
-							<li key={key} className="bg-pink-300 m-3 rounded text-black pl-5">
-								<div className="py-4 flex items-center">
-									<input onChange={() => handleCheck(key)} type="checkbox" checked={value.done} className="mr-3 form-checkbox h-5 w-5 text-pink-500 rounded-md border-gray-300 focus:ring-pink-500 focus:border-pink-500" />
-									{
-										!editElement[key] ?
-											(<p className="inline-flex font-bold">{value.title}</p>) :
-											(<input id={`update-input-` + key} className="inline-flex bg-pink-200 rounded pl-3" defaultValue={value.title}></input>)
-									}
-									<div className="ml-auto mr-4">
-										{
-											!editElement[key] ?
-												(<a href="#" onClick={() => handleEdit(key)}>
-													<FontAwesomeIcon icon={['fas', 'edit']} />
-												</a>)
-												:
-												(<a href="#" onClick={() => handleUpdate(key)}>
-													<FontAwesomeIcon icon={['fas', 'check-circle']} />
-												</a>)
-										}
-										<a href="#" className="ml-3" onClick={() => handleDelete(key)}>
-											<FontAwesomeIcon icon={['fas', 'trash']} />
-										</a>
-									</div>
-								</div>
-							</li>
-						)} )}
-					</ul>
-				}
 			</div>
-		</>
-	);
+		</>)
+	else
+		return (
+			<>
+				<div className="h-screen overflow-y-scroll">
+					<div className="bg-gray-800 max-w-8xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
+						<h1 className="text-6xl pb-12">Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}</h1>
+						<form onSubmit={handleSubmit}>
+							<input type="text" name="todo" placeholder="Add a todo" className="w-9/12 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
+							<button type="submit" className="rounded bg-black px-5 py-1">Add</button>
+						</form>
+					</div>
+					{
+						(!todos || Object.keys(todos).length == 0) ?
+						(
+							<div className="text-center pt-10">
+								<span className="text-3xl">No task found, please add new todo</span>
+							</div>
+						) :
+						<ul>
+							{
+								Object.entries(todos).map(([key, value]) => { 
+									return (
+									<li key={key} className="bg-pink-300 m-3 rounded text-black pl-5">
+										<div className="py-4 flex items-center">
+											<input onChange={() => handleCheck(key)} type="checkbox" checked={value.done} className="mr-3 form-checkbox h-5 w-5 text-pink-500 rounded-md border-gray-300 focus:ring-pink-500 focus:border-pink-500" />
+											{
+												!editElement[key] ?
+													(<p className={`inline-flex font-bold ${value.done ? 'line-through' : ''}`}>{value.title}</p>) :
+													(<input id={`update-input-` + key} className="inline-flex bg-pink-200 rounded pl-3" defaultValue={value.title}></input>)
+											}
+											<div className="ml-auto mr-4">
+												{
+													!editElement[key] ?
+														(<a href="#" onClick={() => handleEdit(key)}>
+															<FontAwesomeIcon icon={['fas', 'edit']} />
+														</a>)
+														:
+														(<a href="#" onClick={() => handleUpdate(key)}>
+															<FontAwesomeIcon icon={['fas', 'check-circle']} />
+														</a>)
+												}
+												<a href="#" className="ml-3" onClick={() => handleDelete(key)}>
+													<FontAwesomeIcon icon={['fas', 'trash']} />
+												</a>
+											</div>
+										</div>
+									</li>
+							)} )}
+						</ul>
+					}
+				</div>
+			</>
+		);
 }

@@ -53,11 +53,6 @@ export default function Card({year, month}) {
         {long: "Saturday", short: 'Sat'}
     ];
 
-    function handleClick(day) {
-        console.log(year, month, day);
-        console.log(format(new Date(`${year}-${month}-${day}`).getTime(), "yyyy-MM-dd"))
-    }
-
     const handleRedirect = (day) => {
         const date = format(new Date(`${year}-${month}-${day}`).getTime(), "yyyy-MM-dd");
         router.push({
