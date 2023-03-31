@@ -310,10 +310,11 @@ export default function Todo() {
 							</div>
 						) :
 						(
-							Object.entries(todos).map(([category, todo]) => {
+							Object.entries(todos).map(([category, todo], categoryIndex) => {
+								const bgHeaderOpacity = (categoryIndex + 3) * 100; // calculate opacity between 10 and 100
 								return (
-									<div key={category} className="pb-5">
-										<header className="bg-blue-500 text-white py-4 text-center flex justify-between items-center">
+									<div key={categoryIndex} className="pb-5">
+										<header className={`bg-indigo-${bgHeaderOpacity} text-white py-4 text-center flex justify-between items-center`}>
 											<h1 className="text-2xl font-bold mx-auto">{category}</h1>
 											<button onClick={() => openModal(category)} className="rounded bg-black font-bold mr-8 px-3 py-1 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
 												+
