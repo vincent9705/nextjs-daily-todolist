@@ -7,6 +7,7 @@ ReactModal.setAppElement("#__next"); // set the app element to the root div
 
 export default function Todo() {
 	const [date, setDate] = useState('');
+	const [modalCategory, setmodalCategory] = useState('');
 	const [todos, setTodos] = useState({});
 	const [editElement, setEditElement] = useState({});
 	const [isLoading, setIsLoading] = useState(true);
@@ -27,25 +28,49 @@ export default function Todo() {
 					setTodos(data.todo);
 
 					const newObject = {};
-					for (let key in data.todo) {
-						newObject[key] = false; // Replace empty string with the desired value
-					}
+					Object.entries(data.todo).map(([category, todo]) => {
+						newObject[category] = {};
+						Object.entries(todo).map(([key, value]) => {
+							newObject[category][key] = false
+						})
+					})
 
 					setEditElement(newObject);
 				}
 			})
 			.catch(error => console.error(error));
 		}
-	}, [date]);
+	}, []);
+
+	const handleCreateCat = async (event) => {
+		event.preventDefault();
+		const category = event.target.category.value;
+		const res = await postCatApi(category);
+
+		if (res.ok) {
+			const newTodo = {
+				[category]: {}
+			};
+
+			setTodos({...todos, ...newTodo});
+			setEditElement({...editElement, ...newTodo});
+			event.target.category.value = "";
+		} else {
+			const errorResponse = await res.json();
+			const errorMessage = errorResponse.message; // Assuming the error message is in a "message" property of the response body
+			alert(`Error Code: ${res.status}` + "\n" + errorMessage);
+		}
+	};
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
-		const todo_id  = (Object.keys(todos).length + 1);
-		const todoBody = {
+		const numTodos = Object.keys(todos[modalCategory]).length;
+		const todo_id  = (numTodos + 1);
+		const data     = {
 			title: event.target.todo.value,
 			done: false
 		};
-		const res = await postApi(todo_id, todoBody);
+		const res = await postApi(todo_id, modalCategory, data);
 
 		if (res.ok) {
 			const newTodo = {
@@ -55,8 +80,16 @@ export default function Todo() {
 				}
 			};
 
-			setTodos({...todos, ...newTodo});
-			setEditElement({...editElement, ...{[todo_id]: false}});
+			const updatedTodo = {
+				...todos,
+				[modalCategory]: {
+				  ...todos[modalCategory],
+				  ...newTodo
+				}
+			};
+
+			setTodos(updatedTodo);
+			setEditElement({...editElement, ...{[modalCategory]: { [todo_id]: false }}});
 			event.target.todo.value = "";
 			closeModal();
 		} else {
@@ -66,24 +99,50 @@ export default function Todo() {
 		}
 	};
 
-	const handleEdit = (index) => {
-		setEditElement(oldEdit => ({ ...oldEdit, [index]: true }));
+	const handleEdit = (index, category) => {
+		setEditElement(oldEdit => ({
+			...oldEdit,
+			[category]: {
+			  ...oldEdit[category],
+			  [index]: true
+			}
+		}));
 	}
 
-	const handleUpdate = async (index) => {
-		const input = document.getElementById(`update-input-` + index);
+	const handleUpdate = async (index, category) => {
+		setEditElement(oldEdit => ({
+			...oldEdit,
+			[category]: {
+			  ...oldEdit[category],
+			  [index]: false
+			}
+		}));
+		const input = document.getElementById(`update-input-${category}-` + index);
 		const todoBody = {
 			title: input.value,
-			done: todos[index].done
+			done: todos[category][index].done
 		};
-		const res = await postApi(index, todoBody);
+		const res = await postApi(index, category, todoBody);
 
 		if (res.ok) {
-			setTodos(oldTodos => {
-				const updatedTodo = { ...oldTodos[index], title: input.value };
-				return { ...oldTodos, [index]: updatedTodo };
-			});
-			setEditElement(oldEdit => ({ ...oldEdit, [index]: false }));
+			setTodos(oldTodos => ({
+				...oldTodos,
+				[category]: {
+					...oldTodos[category],
+					[index]: {
+						title: input.value,
+						done: todos[category][index].done
+					}
+				}
+			}));
+
+			setEditElement(oldEdit => ({
+				...oldEdit,
+				[category]: {
+				  ...oldEdit[category],
+				  [index]: false
+				}
+			}));
 		} else {
 			const errorResponse = await res.json();
 			const errorMessage = errorResponse.message; // Assuming the error message is in a "message" property of the response body
@@ -91,51 +150,76 @@ export default function Todo() {
 		}
 	}
 
-	const handleDelete = async (index) => {
-		const res = await deleteApi(index);
+	const handleDelete = async (index, category) => {
+		// Delete the property with index 1 from category1
+		const newTodos = Object.fromEntries(
+			Object.entries(todos[category])
+				.filter(([key, value]) => key !== index)
+				.map(([key, value], index) => [index + 1, value])
+		);
 
-		if (res.ok) {
-			setTodos(oldTodos => {
-				const newTodos = Object.entries(oldTodos).filter(([key, value]) => key !== index);
-				return Object.fromEntries(newTodos);
-			});
-			setEditElement(oldEdit => {
-				const updatedEdit = Object.entries(oldEdit).filter(([key, value]) => key !== index);
-				return Object.fromEntries(updatedEdit);
-			});
-		} else {
+		setTodos(oldTodos => {
+			return {...oldTodos, [category]: newTodos};
+		});
+
+		setEditElement(oldEdit => {
+			const updatedEdit = Object.fromEntries(
+				Object.entries(oldEdit[category])
+					.filter(([key, value]) => key !== index)
+					.map(([key, value], index) => [index + 1, value])
+			);
+			return {...oldEdit, [category]: updatedEdit};
+		});
+
+		const res = await deleteApi(category, newTodos);
+
+		if (!res.ok) {
 			const errorResponse = await res.json();
 			const errorMessage = errorResponse.message; // Assuming the error message is in a "message" property of the response body
 			alert(`Error Code: ${res.status}` + "\n" + errorMessage);
 		}
 	}
 
-	const openModal = () => {
+	const openModal = (category) => {
+		setmodalCategory(category);
 		setIsModalOpen(true);
 	};
 
 	const closeModal = () => {
+		setmodalCategory('');
 		setIsModalOpen(false);
 	};
 
-  	async function handleCheck(index) {
+  	async function handleCheck(index, category) {
+		console.log(category);
+		console.log(todos[category][index]);
 		setTodos(oldTodos => {
 			// create a new object with the existing todo properties, but with the "done" property set to the opposite of its current value
-			const updatedTodo = { ...oldTodos[index], done: !oldTodos[index].done };
-			return { ...oldTodos, [index]: updatedTodo };
+			const updatedTodo = { ...oldTodos[category][index], done: !oldTodos[category][index].done };
+			return { ...oldTodos,
+				[category]: {
+					...oldTodos[category],
+					[index]: updatedTodo
+				}
+			};
 		});
 
 		const todoBody = {
-			title: todos[index].title,
-			done: !todos[index].done
+			title: todos[category][index].title,
+			done: !todos[category][index].done
 		};
-		const res = await postApi(index, todoBody);
+		const res = await postApi(index, category, todoBody);
 
 		if (!res.ok) {
 			setTodos(oldTodos => {
 				// create a new object with the existing todo properties, but with the "done" property set to the opposite of its current value
-				const updatedTodo = { ...oldTodos[index], done: !oldTodos[index].done };
-				return { ...oldTodos, [index]: updatedTodo };
+				const updatedTodo = { ...oldTodos[category][index], done: !oldTodos[category][index].done };
+				return { ...oldTodos,
+					[category]: {
+						...oldTodos[category],
+						[index]: updatedTodo
+					}
+				};
 			});
 
 			const errorResponse = await res.json();
@@ -144,9 +228,10 @@ export default function Todo() {
 		}
 	}
 
-	async function postApi(index, todoBody) {
+	async function postApi(index, category, todoBody) {
 		const postData = {
 			date: date,
+			category: category,
 			todo_id: index,
 			body: todoBody
 		};
@@ -162,10 +247,28 @@ export default function Todo() {
 		return res;
 	}
 
-	async function deleteApi(index) {
+	async function postCatApi(category) {
 		const postData = {
 			date: date,
-			todo_id: index,
+			category: category
+		};
+
+		const res = await fetch('/api/category', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(postData)
+		});
+
+		return res;
+	}
+
+	async function deleteApi(category, body) {
+		const postData = {
+			date: date,
+			category: category,
+			body: body
 		};
 
 		const res = await fetch('/api/data', {
@@ -194,8 +297,8 @@ export default function Todo() {
 				<div className="h-screen overflow-y-scroll">
 					<div className="bg-gray-800 max-w-8xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
 						<h1 className="text-6xl pb-12">Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}</h1>
-						<form onSubmit={handleSubmit}>
-							<input type="text" name="todo" placeholder="Add a todo" className="w-9/12 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
+						<form onSubmit={handleCreateCat}>
+							<input type="text" name="category" placeholder="Add a category" className="w-9/12 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
 							<button type="submit" className="rounded bg-black px-5 py-1">Add</button>
 						</form>
 					</div>
@@ -207,31 +310,34 @@ export default function Todo() {
 							</div>
 						) :
 						(
-							<div>
-								<header className="bg-blue-500 text-white py-4 text-center flex justify-between items-center">
-									<h1 className="text-2xl font-bold mx-auto">My Header</h1>
-									<button onClick={openModal} className="rounded bg-black font-bold mr-8 px-3 py-1 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
-										+
-									</button>
-								</header>
-								<ul>
-									{
-										Object.entries(todos).map(([idx, value]) => {
-											return <TodoItem
-													key={idx}
-													idx={idx}
-													done={value.done}
-													title={value.title}
-													handleCheck={() => handleCheck(idx)}
-													isEdit={editElement[idx]}
-													handleEdit={() => handleEdit(idx)}
-													handleUpdate={() => handleUpdate(idx)}
-													handleDelete={() => handleDelete(idx)}
-												/>
-										})
-									}
-								</ul>
-							</div>
+							Object.entries(todos).map(([category, todo]) => {
+								return (
+									<div key={category} className="pb-5">
+										<header className="bg-blue-500 text-white py-4 text-center flex justify-between items-center">
+											<h1 className="text-2xl font-bold mx-auto">{category}</h1>
+											<button onClick={() => openModal(category)} className="rounded bg-black font-bold mr-8 px-3 py-1 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+												+
+											</button>
+										</header>
+										<ul>
+											{Object.entries(todo).map(([idx, value]) => {
+												return <TodoItem
+														key={idx}
+														idx={idx}
+														done={value.done}
+														title={value.title}
+														category={category}
+														handleCheck={() => handleCheck(idx, category)}
+														isEdit={editElement[category][idx]}
+														handleEdit={() => handleEdit(idx, category)}
+														handleUpdate={() => handleUpdate(idx, category)}
+														handleDelete={() => handleDelete(idx, category)}
+													/>
+											})}
+										</ul>
+									</div>
+								)
+							})
 						)
 					}
 

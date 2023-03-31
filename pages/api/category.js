@@ -1,36 +1,13 @@
 import { connectToDatabase } from '../../lib/mongodb';
 
 async function handler(req, res) {
-    if (req.method === 'GET') {
-        const { date }   = req.query;
-        const client     = await connectToDatabase();
-        const db         = client.db("calendar");
-        const collection = db.collection('todolist');
-        const data       = await collection.find({'_id': date}).toArray();
-
-        if (!date)
-            res.status(400).json({ message: 'Param date is required' });
-
-        if (data.length === 0) {
-            const todo = {};
-            const result = await collection.insertOne({"_id": date, todo});
-            res.status(200).json(todo);
-        }
-        else {
-            res.status(200).json(data[0]);
-        }
-
-    }
-    else if (req.method === 'POST') {
+    if (req.method === 'POST') {
         /**
          * Body format:
-         * "body" : {
-         *      "title": "Todo 1",
-         *      "done": true
-         * }  
+         * "category" : "category 1"
          **/
-        const { date, todo_id, category, body } = req.body;
-        if (!date || !todo_id || !category || !body)
+        const { date, category } = req.body;
+        if (!date || !category)
             return res.status(400).json({ message: 'Requested body data are missing!' });
             
         const client         = await connectToDatabase();
@@ -40,9 +17,7 @@ async function handler(req, res) {
 
         if (data.length === 0) {
             const todo   = {
-                [category] :{
-                    [todo_id] : body
-                }
+                [category] : {}
             };
             const result = await collection.insertOne({"_id": date, todo});
 
@@ -50,7 +25,7 @@ async function handler(req, res) {
         }
         else {
             const filter = { "_id": date };
-            const update = { $set: { [`todo.${category}.${todo_id}`]: body } };
+            const update = { $set: { [`todo.${category}`]: {} } };
             const result = await collection.updateOne(filter, update);
 
             res.status(200).json({ message: 'Task updated successfully!' });
@@ -64,8 +39,8 @@ async function handler(req, res) {
          *      "done": true
          * }  
          **/
-        const { date, category, body } = req.body;
-        if (!date || !category || !body)
+        const { date, todo_id } = req.body;
+        if (!date || !todo_id)
             return res.status(400).json({ message: 'Requested body data are missing!' });
 
         const client = await connectToDatabase();
@@ -77,7 +52,7 @@ async function handler(req, res) {
             return res.status(404).json({ message: 'Data not found!' });
         } else {
             const filter = { "_id": date };
-            const update = { $set: { [`todo.${category}`]: body } };
+            const update = { $unset: { [`todo.${todo_id}`]: "" } };
             const result = await collection.updateOne(filter, update);
 
             res.status(200).json({ message: 'Task deleted successfully!' });
