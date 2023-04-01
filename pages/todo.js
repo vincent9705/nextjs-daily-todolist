@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ReactModal from 'react-modal';
 import { format } from "date-fns";
 import TodoItem from '/components/todo/item'
+import { useRouter } from "next/router";
+import { FiArrowLeft } from "react-icons/fi";
 
 ReactModal.setAppElement("#__next"); // set the app element to the root div
 
@@ -12,6 +14,7 @@ export default function Todo() {
 	const [editElement, setEditElement] = useState({});
 	const [isLoading, setIsLoading] = useState(true);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const router = useRouter();
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -230,6 +233,10 @@ export default function Todo() {
 		}
 	}
 
+	const handleBackButtonClick = () => {
+		router.back();
+	};
+
 	async function postApi(index, category, todoBody) {
 		const postData = {
 			date: date,
@@ -298,7 +305,12 @@ export default function Todo() {
 			<>
 				<div className="h-screen overflow-y-scroll">
 					<div className="bg-gray-800 max-w-8xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
-						<h1 className="xl:text-6xl max-xl:text-3xl pb-12 text-white">Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}</h1>
+						<h1 className="xl:text-6xl max-xl:text-3xl pb-12 text-white">
+							<button className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-full inline-flex items-center my-1 float-left" onClick={handleBackButtonClick}>
+								<FiArrowLeft />
+							</button>
+							Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}
+						</h1>
 						<form onSubmit={handleCreateCat}>
 							<input type="text" name="category" placeholder="Add a category" className="w-9/12 max-xl:w-3/5 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
 							<button type="submit" className="rounded bg-black px-5 py-1 text-white">Add</button>
