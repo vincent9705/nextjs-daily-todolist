@@ -70,29 +70,30 @@ export default function Todo() {
 			title: event.target.todo.value,
 			done: false
 		};
+		
+		const newTodo = {
+			[todo_id]: {
+				title: event.target.todo.value,
+				done: false
+			}
+		};
+
+		const updatedTodo = {
+			...todos,
+			[modalCategory]: {
+			  ...todos[modalCategory],
+			  ...newTodo
+			}
+		};
+		
+		setTodos(updatedTodo);
+		setEditElement({...editElement, ...{[modalCategory]: { [todo_id]: false }}});
+		event.target.todo.value = "";
+		closeModal();
+		
 		const res = await postApi(todo_id, modalCategory, data);
 
-		if (res.ok) {
-			const newTodo = {
-				[todo_id]: {
-					title: event.target.todo.value,
-					done: false
-				}
-			};
-
-			const updatedTodo = {
-				...todos,
-				[modalCategory]: {
-				  ...todos[modalCategory],
-				  ...newTodo
-				}
-			};
-
-			setTodos(updatedTodo);
-			setEditElement({...editElement, ...{[modalCategory]: { [todo_id]: false }}});
-			event.target.todo.value = "";
-			closeModal();
-		} else {
+		if (!res.ok){
 			const errorResponse = await res.json();
 			const errorMessage = errorResponse.message; // Assuming the error message is in a "message" property of the response body
 			alert(`Error Code: ${res.status}` + "\n" + errorMessage);
@@ -122,28 +123,29 @@ export default function Todo() {
 			title: input.value,
 			done: todos[category][index].done
 		};
+
+		setTodos(oldTodos => ({
+			...oldTodos,
+			[category]: {
+				...oldTodos[category],
+				[index]: {
+					title: input.value,
+					done: todos[category][index].done
+				}
+			}
+		}));
+
+		setEditElement(oldEdit => ({
+			...oldEdit,
+			[category]: {
+			  ...oldEdit[category],
+			  [index]: false
+			}
+		}));
+
 		const res = await postApi(index, category, todoBody);
 
-		if (res.ok) {
-			setTodos(oldTodos => ({
-				...oldTodos,
-				[category]: {
-					...oldTodos[category],
-					[index]: {
-						title: input.value,
-						done: todos[category][index].done
-					}
-				}
-			}));
-
-			setEditElement(oldEdit => ({
-				...oldEdit,
-				[category]: {
-				  ...oldEdit[category],
-				  [index]: false
-				}
-			}));
-		} else {
+		if (!res.ok){
 			const errorResponse = await res.json();
 			const errorMessage = errorResponse.message; // Assuming the error message is in a "message" property of the response body
 			alert(`Error Code: ${res.status}` + "\n" + errorMessage);
