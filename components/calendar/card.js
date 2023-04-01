@@ -67,6 +67,13 @@ export default function Card({year, month}) {
         event.stopPropagation();
     }
 
+    function handleTouchStart(event) {
+        // Prevent the default touch behavior to prevent double taps
+        event.preventDefault();
+        // Call the click handler for the element
+        event.target.click();
+    }
+
     return (
         <>
             <table className="w-full">
@@ -92,7 +99,7 @@ export default function Card({year, month}) {
                                 color          = is_today ? "bg-blue-400" : color;
                                 
                                 return (
-                                    <td key={j} className={`border p-1 xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 overflow-auto transition cursor-pointer duration-500 ease hover:bg-gray-500 ${color}`} day={day} onClick={() => handleRedirect(day)}>
+                                    <td key={j} className={`border p-1 xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 overflow-auto transition cursor-pointer duration-500 ease hover:bg-gray-500 ${color}`} day={day} onClick={() => handleRedirect(day)} onTouchStart={handleTouchStart}>
                                         <div className="flex flex-col xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 mx-auto xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 mx-auto overflow-hidden">
                                             <div className="top h-5 w-full">
                                                 <span className={`${text_color}`}>{day}</span>
