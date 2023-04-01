@@ -296,10 +296,10 @@ export default function Todo() {
 			<>
 				<div className="h-screen overflow-y-scroll">
 					<div className="bg-gray-800 max-w-8xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
-						<h1 className="text-6xl pb-12">Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}</h1>
+						<h1 className="xl:text-6xl max-xl:text-3xl pb-12 text-white">Todo List - {format(new Date(date).getTime(), "dd MMM yyyy")}</h1>
 						<form onSubmit={handleCreateCat}>
-							<input type="text" name="category" placeholder="Add a category" className="w-9/12 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
-							<button type="submit" className="rounded bg-black px-5 py-1">Add</button>
+							<input type="text" name="category" placeholder="Add a category" className="w-9/12 max-xl:w-3/5 h-10 text-center mr-8 rounded-xl bg-gray-100 text-black" autoComplete="off" />
+							<button type="submit" className="rounded bg-black px-5 py-1 text-white">Add</button>
 						</form>
 					</div>
 					{

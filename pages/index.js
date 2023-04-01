@@ -19,7 +19,7 @@ export default function Home() {
         <div className="container mx-auto mt-10 max-h-[90vh]">
             <div className="wrapper bg-[#1f2937] rounded shadow w-full">
                 <div className="header flex justify-between border-b p-2">
-                    <span className="text-lg font-bold pl-3">
+                    <span className="text-lg font-bold pl-3 text-white">
                     {format(currentMonth, "yyyy MMM")}
                     </span>
                     <div className="buttons">

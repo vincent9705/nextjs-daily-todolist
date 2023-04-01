@@ -53,26 +53,17 @@ export default function Card({year, month}) {
         {long: "Saturday", short: 'Sat'}
     ];
 
+    function formatStartWithZero(number) {
+        return String(number).padStart(2, '0');
+    }
+
     const handleRedirect = (day) => {
-        const date = format(new Date(`${year}-${month}-${day}`).getTime(), "yyyy-MM-dd");
+        const date = format(new Date(`${year}-${formatStartWithZero(month)}-${formatStartWithZero(day)}`).getTime(), "yyyy-MM-dd");
         router.push({
           pathname: '/todo',
           query: { date: date },
         });
     };
-    
-
-    function handleTrClick(event) {
-        // Stop the event from propagating up to the parent elements
-        event.stopPropagation();
-    }
-
-    function handleTouchStart(event) {
-        // Prevent the default touch behavior to prevent double taps
-        event.preventDefault();
-        // Call the click handler for the element
-        event.target.click();
-    }
 
     return (
         <>
@@ -81,17 +72,15 @@ export default function Card({year, month}) {
                     <tr>
                         {daysOfWeek.map((day) => (
                             <th key={day.short} className="p-2 border-r h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 xl:text-sm text-xs">
-                                <span className="xl:block lg:block md:block sm:block hidden">{day.long}</span>
-                                <span className="xl:hidden lg:hidden md:hidden sm:hidden block">{day.short}</span>
+                                <span className="xl:block lg:block md:block sm:block hidden text-white">{day.long}</span>
+                                <span className="xl:hidden lg:hidden md:hidden sm:hidden block text-white">{day.short}</span>
                             </th>
                         ))}
                     </tr>
                 </thead>
                 <tbody>
-
-
                     {calendarData.map((row, i) => (
-                        <tr key={i} className="text-center h-20" onClick={handleTrClick}>
+                        <tr key={i} className="text-center h-20">
                             {row.map((day, j) => {
                                 let color      = day != null ? "" : "bg-gray-500";
                                 let is_today   = (format(today, "yyyy") == year && format(today, "M") == month && format(today, "d") == day) ? true : false;
@@ -99,7 +88,7 @@ export default function Card({year, month}) {
                                 color          = is_today ? "bg-blue-400" : color;
                                 
                                 return (
-                                    <td key={j} className={`border p-1 xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 overflow-auto transition cursor-pointer duration-500 ease hover:bg-gray-500 ${color}`} day={day} onClick={() => handleRedirect(day)} onTouchStart={handleTouchStart}>
+                                    <td key={j} className={`border p-1 xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 overflow-auto transition cursor-pointer duration-500 ease hover:bg-gray-500 ${color}`} day={day} onClick={() => handleRedirect(day)}>
                                         <div className="flex flex-col xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 mx-auto xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 mx-auto overflow-hidden">
                                             <div className="top h-5 w-full">
                                                 <span className={`${text_color}`}>{day}</span>
