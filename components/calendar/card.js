@@ -59,8 +59,13 @@ export default function Card({year, month}) {
           pathname: '/todo',
           query: { date: date },
         });
-      };
+    };
     
+
+    function handleTrClick(event) {
+        // Stop the event from propagating up to the parent elements
+        event.stopPropagation();
+    }
 
     return (
         <>
@@ -79,7 +84,7 @@ export default function Card({year, month}) {
 
 
                     {calendarData.map((row, i) => (
-                        <tr key={i} className="text-center h-20">
+                        <tr key={i} className="text-center h-20" onClick={handleTrClick}>
                             {row.map((day, j) => {
                                 let color      = day != null ? "" : "bg-gray-500";
                                 let is_today   = (format(today, "yyyy") == year && format(today, "M") == month && format(today, "d") == day) ? true : false;
@@ -87,7 +92,7 @@ export default function Card({year, month}) {
                                 color          = is_today ? "bg-blue-400" : color;
                                 
                                 return (
-                                    <td key={j} className={`border p-1 xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 overflow-auto transition cursor-pointer duration-500 ease hover:bg-gray-500 ${color}`} day={day}onClick={() => handleRedirect(day)}>
+                                    <td key={j} className={`border p-1 xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 overflow-auto transition cursor-pointer duration-500 ease hover:bg-gray-500 ${color}`} day={day} onClick={() => handleRedirect(day)}>
                                         <div className="flex flex-col xl:h-40 lg:h-30 md:h-30 sm:h-20 xs:h-10 mx-auto xl:w-40 lg:w-30 md:w-30 sm:w-20 w-10 mx-auto overflow-hidden">
                                             <div className="top h-5 w-full">
                                                 <span className={`${text_color}`}>{day}</span>

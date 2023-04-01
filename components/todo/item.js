@@ -9,7 +9,7 @@ export default function TodoItem({idx, done, title, category, handleCheck, isEdi
                 {
                     !isEdit ?
                         (<p className={`inline-flex font-bold ${done ? 'line-through' : ''}`}>{title}</p>) :
-                        (<input id={`update-input-${category}-` + idx} className="inline-flex bg-pink-200 rounded pl-3" defaultValue={title}></input>)
+                        (<input id={`update-input-${category}-` + idx} className="inline-flex bg-pink-200 rounded pl-3 w-4/5" defaultValue={title}></input>)
                 }
                 <div className="ml-auto mr-4">
                     {
@@ -30,4 +30,3 @@ export default function TodoItem({idx, done, title, category, handleCheck, isEdi
         </li>
     );
 }
-
