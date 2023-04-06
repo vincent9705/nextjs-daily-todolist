@@ -1,10 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useRouter } from 'next/router';
 
 export default function Card({year, month}) {
-    const router = useRouter();
+    const router       = useRouter();
+    const calendarData = generateCalendarData(month, year);
+    const [today, setToday] = useState(new Date());
+    const daysOfWeek = [
+        {long: "Sunday", short: 'Sun'},
+        {long: "Monday", short: 'Mon'},
+        {long: "Tuesday", short: 'Tue'},
+        {long: "Wednesday", short: 'Wed'},
+        {long: "Thursday", short: 'Thu'},
+        {long: "Friday", short: 'Fri'},
+        {long: "Saturday", short: 'Sat'}
+    ];
 
+    useEffect(() => {
+		setToday(new Date());
+	}, []);
+    
     function generateCalendarData(month, year) {
         month = month - 1;
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -40,18 +55,6 @@ export default function Card({year, month}) {
 
         return data;
     }
-
-    const calendarData = generateCalendarData(month, year);
-    const today        = new Date();
-    const daysOfWeek = [
-        {long: "Sunday", short: 'Sun'},
-        {long: "Monday", short: 'Mon'},
-        {long: "Tuesday", short: 'Tue'},
-        {long: "Wednesday", short: 'Wed'},
-        {long: "Thursday", short: 'Thu'},
-        {long: "Friday", short: 'Fri'},
-        {long: "Saturday", short: 'Sat'}
-    ];
 
     function formatStartWithZero(number) {
         return String(number).padStart(2, '0');
