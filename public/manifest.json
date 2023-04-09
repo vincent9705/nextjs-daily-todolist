@@ -3,7 +3,7 @@
   "background_color": "#000000",
   "display": "standalone",
   "scope": "/",
-  "start_url": "/",
+  "start_url": "/pwa-index",
   "name": "Daily Todo",
   "short_name": "Daily Todo",
   "icons": [
